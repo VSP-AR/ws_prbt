@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="prbt">
+    <xacro:arg name="robot_prefix" default="prbt_"/>
+    <xacro:arg name="bus_config" default="$(find prbt_robot_support)/config/prbt/bus.yml"/>
+    <xacro:arg name="master_config" default="$(find prbt_robot_support)/config/prbt/master.dcf"/>
+    <xacro:arg name="can_interface_name" default="vcan0"/>
+    <xacro:arg name="master_bin" default=""/>
+
+    <!-- Import prbt urdf file -->
+    <xacro:include filename="$(find prbt_robot_support)/urdf/prbt_macro.xacro" />
+    <xacro:include filename="$(find prbt_robot_support)/urdf/prbt.ros2_control.xacro" />
+
+
+    <!-- instantiate the robot -->
+    <link name="world"/>
+    <xacro:prbt prefix="$(arg robot_prefix)" parent="world">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </xacro:prbt>
+    
+    <xacro:prbt_ros2_control
+        name="$(arg robot_prefix)"
+        prefix="$(arg robot_prefix)"
+        bus_config="$(arg bus_config)"
+        master_config="$(arg master_config)"
+        can_interface_name="$(arg can_interface_name)"
+        master_bin="$(arg master_bin)" />
+
+</robot>

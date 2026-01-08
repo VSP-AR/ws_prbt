@@ -1,0 +1,29 @@
+repositories:
+  rosparam_shortcuts:
+    type: git
+    url: https://github.com/PickNikRobotics/rosparam_shortcuts.git
+    version: ros2
+  ros2_canopen:
+    type: git
+    url: https://github.com/ipa-vsp/ros2_canopen.git
+    version: humble
+  realsense-ros:
+    type: git
+    url: https://github.com/IntelRealSense/realsense-ros.git
+    version: ros2-development
+  schunk_io_driver:
+    type: git
+    url: https://github.com/ipa-vsp/schunk_io_driver.git
+    version: main
+  any_robot_worker:
+    type: git
+    url: https://github.com/ipa-vsp/any_robot_worker.git
+    version: main
+  prbt_robot:
+    type: git
+    url: https://github.com/ipa-vsp/prbt_robot.git
+    version: update-ros2-canopen-beta-release
+  color_pose:
+    type: git
+    url: https://github.com/ipa-vsp/color_pose.git
+    version: main

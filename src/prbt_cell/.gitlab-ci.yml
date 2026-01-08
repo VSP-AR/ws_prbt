@@ -1,0 +1,166 @@
+include:
+  - local: .ci/gitlab_template/RULES.yml
+
+variables:
+  CMAKE_ARGS: "-DCMAKE_BUILD_TYPE=RELEASE"
+  ROSINSTALL_CI_JOB_TOKEN: "true"
+  PREFIX: "${CI_PIPELINE_ID}:"
+  SUFFIX: ""
+
+default:
+  before_script:
+    - export NAME="${ROS_VERSION}"
+    - export TARGET="${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-}"
+    - export ARTIFACT_PATH="${PREFIX//:/-}${NAME}${SUFFIX}.tar"
+
+# Prebuild stage
+.precommit:
+  image: python:3.12.0b4-slim
+  before_script:
+    - apt update && apt install -y --no-install-recommends git
+    - pip install pre-commit
+    - apt install -y --no-install-recommends clang-format-14
+  script:
+    - pre-commit run --all-files
+
+precommit:
+  tags:
+    - intranet
+  stage: format
+  extends:
+    - .precommit
+    - .on_default_merge_tag
+
+# Build stage
+.build_template:
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "commit=${CI_COMMIT_REF_NAME//\//-}"
+    - echo "Target=$TARGET"
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}/${FOLDER}"
+      --build-arg BASE_IMAGE
+      --build-arg ROSINSTALL_CI_JOB_TOKEN
+      --build-arg CMAKE_ARGS
+      --dockerfile "${CI_PROJECT_DIR}/${FOLDER}/Dockerfile"
+      --no-push
+      --destination "$TARGET"
+      --tarPath ${PREFIX//:/-}${NAME}${SUFFIX}.tar
+  artifacts:
+    name: "$NAME"
+    paths:
+      - ${PREFIX//:/-}${NAME}${SUFFIX}.tar
+    expire_in: 10 minutes
+  variables:
+    NAME: "${ROS_VERSION}"
+
+# rolling_build:
+#   extends:
+#     - .build_template
+#     - .on_always
+#   tags:
+#     - intranet
+#   stage: build
+#   variables:
+#     ROS_VERSION: "rolling"
+#     BASE_IMAGE: "ros:rolling"
+#     FOLDER: ""
+
+# iron_build:
+#   extends:
+#     - .build_template
+#     - .on_always
+#   tags:
+#     - intranet
+#   stage: build
+#   variables:
+#     ROS_VERSION: "iron"
+#     BASE_IMAGE: "ros:iron"
+#     FOLDER: ""
+
+humble_build:
+  extends:
+    - .build_template
+    - .on_always
+  tags:
+    - intranet
+  stage: build
+  variables:
+    ROS_VERSION: "humble"
+    BASE_IMAGE: "ros:humble"
+    FOLDER: ""
+
+# Publish stage
+.common_publish:
+  create_release_tag_script:
+    - |
+      TARGET="${CI_REGISTRY_IMAGE}/${NAME}:${CI_COMMIT_REF_NAME//\//-}"
+
+      if [ "$CI_COMMIT_REF_NAME" == "main" ] || [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+          TARGET="${CI_REGISTRY_IMAGE}/${NAME}:latest"
+      fi
+      if [ "$CI_COMMIT_TAG" ]; then
+          convert_tag="${CI_COMMIT_TAG//\//-}"
+          TARGET="${CI_REGISTRY_IMAGE}/${NAME}:${convert_tag}"
+      fi
+
+.publish_template:
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [""]
+  script:
+    - !reference [.common_publish, create_release_tag_script]
+    - crane auth login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - crane push "$ARTIFACT_PATH" "$TARGET"
+
+# rolling_publish:
+#   extends:
+#     - .publish_template
+#     - .on_default_merge_tag
+#   tags:
+#     - intranet
+#   stage: publish
+#   variables:
+#     ROS_VERSION: "rolling"
+#   needs:
+#     - job: rolling_build
+#       artifacts: true
+#   dependencies:
+#     - rolling_build
+
+# iron_publish:
+#   extends:
+#     - .publish_template
+#     - .on_default_merge_tag
+#   tags:
+#     - intranet
+#   stage: publish
+#   variables:
+#     ROS_VERSION: "iron"
+#   needs:
+#     - job: iron_build
+#       artifacts: true
+#   dependencies:
+#     - iron_build
+
+humble_publish:
+  extends:
+    - .publish_template
+    - .on_default_merge_tag
+  tags:
+    - intranet
+  stage: publish
+  variables:
+    ROS_VERSION: "humble"
+  needs:
+    - job: humble_build
+      artifacts: true
+  dependencies:
+    - humble_build
+
+stages:
+  - format
+  - build
+  - publish

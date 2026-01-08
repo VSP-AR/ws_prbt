@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This does not replace URDF, and is not an extension of URDF.
+    This is a format for representing semantic information about the robot structure.
+    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
+-->
+<robot name="prbt_cell">
+    <!--GROUPS Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
+    <!--LINKS When a link is specified, the parent joint of that link (if it exists) is automatically included-->
+    <!--JOINTS When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
+    <!--CHAINS When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
+    <!--SUBGROUPS Groups can also be formed by referencing to already defined group names-->
+    <group name="arm">
+        <chain base_link="prbt_base_link" tip_link="prbt_tool0"/>
+    </group>
+    <!-- <group name="gripper">
+        <joint name="schunk_egp40_finger_left_joint"/>
+        <joint name="schunk_egp40_finger_right_joint"/>
+    </group> -->
+    <!--END EFFECTOR Purpose Represent information about an end effector.-->
+    <!-- <end_effector name="schunk_egp40" parent_link="prbt_tool0" group="gripper" parent_group="arm"/> -->
+    <!--DISABLE COLLISIONS By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
+    <disable_collisions link1="camera_link" link2="prbt_flange" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="prbt_link_2" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="prbt_link_5" reason="Never"/>
+    <!-- <disable_collisions link1="camera_link" link2="schunk_egp40_base_link" reason="Adjacent"/>
+    <disable_collisions link1="camera_link" link2="schunk_egp40_body_link" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="schunk_egp40_finger_left_link" reason="Never"/>
+    <disable_collisions link1="camera_link" link2="schunk_egp40_finger_right_link" reason="Never"/> -->
+    <disable_collisions link1="camera_link" link2="shield_left_link" reason="Never"/>
+    <disable_collisions link1="prbt_base_link" link2="prbt_link_1" reason="Adjacent"/>
+    <disable_collisions link1="prbt_base_link" link2="prbt_link_2" reason="Never"/>
+    <disable_collisions link1="prbt_base_link" link2="robotcell_base_link" reason="Adjacent"/>
+    <disable_collisions link1="prbt_base_link" link2="robotcell_collision_base_link" reason="Default"/>
+    <disable_collisions link1="prbt_base_link" link2="robotcell_collision_object_link" reason="Adjacent"/>
+    <disable_collisions link1="prbt_base_link" link2="shield_front_link" reason="Never"/>
+    <disable_collisions link1="prbt_base_link" link2="shield_left_link" reason="Never"/>
+    <disable_collisions link1="prbt_base_link" link2="shield_rear_link" reason="Never"/>
+    <disable_collisions link1="prbt_base_link" link2="shield_right_link" reason="Never"/>
+    <disable_collisions link1="prbt_flange" link2="prbt_link_1" reason="Never"/>
+    <disable_collisions link1="prbt_flange" link2="prbt_link_2" reason="Never"/>
+    <disable_collisions link1="prbt_flange" link2="prbt_link_3" reason="Never"/>
+    <disable_collisions link1="prbt_flange" link2="prbt_link_4" reason="Never"/>
+    <disable_collisions link1="prbt_flange" link2="prbt_link_5" reason="Adjacent"/>
+    <!-- <disable_collisions link1="prbt_flange" link2="schunk_egp40_base_link" reason="Adjacent"/>
+    <disable_collisions link1="prbt_flange" link2="schunk_egp40_body_link" reason="Never"/>
+    <disable_collisions link1="prbt_flange" link2="schunk_egp40_finger_left_link" reason="Never"/>
+    <disable_collisions link1="prbt_flange" link2="schunk_egp40_finger_right_link" reason="Never"/> -->
+    <disable_collisions link1="prbt_flange" link2="shield_left_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_1" link2="prbt_link_2" reason="Adjacent"/>
+    <disable_collisions link1="prbt_link_1" link2="prbt_link_3" reason="Never"/>
+    <disable_collisions link1="prbt_link_1" link2="robotcell_base_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_1" link2="robotcell_collision_base_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_1" link2="robotcell_collision_object_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_1" link2="shield_front_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_1" link2="shield_left_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_1" link2="shield_rear_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_1" link2="shield_right_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_2" link2="prbt_link_3" reason="Adjacent"/>
+    <disable_collisions link1="prbt_link_2" link2="prbt_link_5" reason="Never"/>
+    <!-- <disable_collisions link1="prbt_link_2" link2="schunk_egp40_base_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_2" link2="schunk_egp40_body_link" reason="Never"/> -->
+    <disable_collisions link1="prbt_link_2" link2="shield_left_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_3" link2="prbt_link_4" reason="Adjacent"/>
+    <disable_collisions link1="prbt_link_3" link2="prbt_link_5" reason="Never"/>
+    <!-- <disable_collisions link1="prbt_link_3" link2="schunk_egp40_base_link" reason="Never"/> -->
+    <disable_collisions link1="prbt_link_3" link2="shield_left_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_4" link2="prbt_link_5" reason="Adjacent"/>
+    <disable_collisions link1="prbt_link_4" link2="shield_left_link" reason="Never"/>
+    <!-- <disable_collisions link1="prbt_link_5" link2="schunk_egp40_base_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_5" link2="schunk_egp40_body_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_5" link2="schunk_egp40_finger_left_link" reason="Never"/>
+    <disable_collisions link1="prbt_link_5" link2="schunk_egp40_finger_right_link" reason="Never"/> -->
+    <disable_collisions link1="prbt_link_5" link2="shield_left_link" reason="Never"/>
+    <disable_collisions link1="robotcell_base_link" link2="robotcell_collision_base_link" reason="Adjacent"/>
+    <disable_collisions link1="robotcell_base_link" link2="robotcell_collision_object_link" reason="Adjacent"/>
+    <disable_collisions link1="robotcell_base_link" link2="shield_front_link" reason="Adjacent"/>
+    <disable_collisions link1="robotcell_base_link" link2="shield_left_link" reason="Adjacent"/>
+    <disable_collisions link1="robotcell_base_link" link2="shield_rear_link" reason="Adjacent"/>
+    <disable_collisions link1="robotcell_base_link" link2="shield_right_link" reason="Adjacent"/>
+    <disable_collisions link1="robotcell_collision_base_link" link2="robotcell_collision_object_link" reason="Never"/>
+    <disable_collisions link1="robotcell_collision_base_link" link2="shield_front_link" reason="Default"/>
+    <disable_collisions link1="robotcell_collision_base_link" link2="shield_left_link" reason="Default"/>
+    <disable_collisions link1="robotcell_collision_base_link" link2="shield_rear_link" reason="Default"/>
+    <disable_collisions link1="robotcell_collision_base_link" link2="shield_right_link" reason="Default"/>
+    <disable_collisions link1="robotcell_collision_object_link" link2="shield_front_link" reason="Never"/>
+    <disable_collisions link1="robotcell_collision_object_link" link2="shield_left_link" reason="Never"/>
+    <disable_collisions link1="robotcell_collision_object_link" link2="shield_rear_link" reason="Never"/>
+    <disable_collisions link1="robotcell_collision_object_link" link2="shield_right_link" reason="Never"/>
+    <!-- <disable_collisions link1="schunk_egp40_base_link" link2="schunk_egp40_body_link" reason="Adjacent"/>
+    <disable_collisions link1="schunk_egp40_base_link" link2="schunk_egp40_finger_left_link" reason="Never"/>
+    <disable_collisions link1="schunk_egp40_base_link" link2="schunk_egp40_finger_right_link" reason="Never"/>
+    <disable_collisions link1="schunk_egp40_base_link" link2="shield_left_link" reason="Never"/>
+    <disable_collisions link1="schunk_egp40_body_link" link2="schunk_egp40_finger_left_link" reason="Adjacent"/>
+    <disable_collisions link1="schunk_egp40_body_link" link2="schunk_egp40_finger_right_link" reason="Adjacent"/>
+    <disable_collisions link1="schunk_egp40_body_link" link2="shield_left_link" reason="Never"/>
+    <disable_collisions link1="schunk_egp40_finger_left_link" link2="schunk_egp40_finger_right_link" reason="Never"/>
+    <disable_collisions link1="schunk_egp40_finger_left_link" link2="shield_left_link" reason="Never"/>
+    <disable_collisions link1="schunk_egp40_finger_right_link" link2="shield_left_link" reason="Never"/> -->
+    <disable_collisions link1="shield_front_link" link2="shield_left_link" reason="Default"/>
+    <disable_collisions link1="shield_front_link" link2="shield_rear_link" reason="Never"/>
+    <disable_collisions link1="shield_front_link" link2="shield_right_link" reason="Default"/>
+    <disable_collisions link1="shield_left_link" link2="shield_rear_link" reason="Default"/>
+    <disable_collisions link1="shield_left_link" link2="shield_right_link" reason="Never"/>
+    <disable_collisions link1="shield_rear_link" link2="shield_right_link" reason="Default"/>
+</robot>

@@ -1,0 +1,164 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="schunk_egp40">
+
+    <xacro:macro name="schunk_egp40" params="
+        name
+        prefix
+        parent
+        *origin
+    ">
+
+        <xacro:include filename="inertial_macros.xacro" />
+
+        <xacro:property name="base_diameter" value="0.065" />
+        <xacro:property name="base_height" value="0.015" />
+        <xacro:property name="body_length" value="0.04" />
+        <xacro:property name="body_width" value="0.026" />
+        <xacro:property name="body_height" value="0.0731" />
+        <xacro:property name="body_height_max" value="0.0884" />
+        <xacro:property name="pincer_height" value="0.0123" />
+        <xacro:property name="pincer_length" value="0.040" />
+        <xacro:property name="pincer_width" value="0.016" />
+
+        <material name="blue">
+            <color rgba="0 0.2 1 1" />
+        </material>
+
+        <material name="green">
+            <color rgba="0 0.9 0.3 1" />
+        </material>
+
+        <material name="white">
+            <color rgba="1 1 1 1" />
+        </material>
+
+
+        <!--Base plate-->
+        <link name="${prefix}schunk_egp40_base_link">
+            <visual>
+                <geometry>
+                    <mesh filename="package://prbt_cell_description/meshes/flange_v3.STL" scale="0.001 0.001 0.001" />
+                </geometry>
+                <material name="blue" />
+                <origin rpy="${pi} 0 0" xyz="-${base_diameter/2} ${base_diameter/2} ${base_height}" />
+            </visual>
+            <collision>
+                <geometry>
+                    <mesh filename="package://prbt_cell_description/meshes/flange_v3.STL" scale="0.001 0.001 0.001" />
+                </geometry>
+                <origin rpy="${pi} 0 0" xyz="-${base_diameter/2} ${base_diameter/2} ${base_height}" />
+            </collision>
+        </link>
+
+        <!--Main gripper-->
+        <link name="${prefix}schunk_egp40_body_link">
+            <visual>
+                <geometry>
+                    <mesh filename="package://prbt_cell_description/meshes/schunk_egp40_body.STL" scale="0.001 0.001 0.001" />
+                </geometry>
+                <origin rpy="${pi/2} 0 0" xyz="${-body_length/2} ${body_width/2} ${-body_height/2}" />
+                <material name="green" />
+            </visual>
+            <collision>
+                <geometry>
+                    <mesh filename="package://prbt_cell_description/meshes/schunk_egp40_body.STL" scale="0.001 0.001 0.001" />
+                </geometry>
+                <origin rpy="${pi/2} 0 0" xyz="${-body_length/2} ${body_width/2} ${-body_height/2}" />
+            </collision>
+            <xacro:inertial_box mass="0.5" x="${body_length}" y="${body_width}" z="${body_height}">
+                <origin rpy="${pi/2} 0 0" xyz="${-body_length/2} ${body_width/2} ${-body_height/2}" />
+            </xacro:inertial_box>
+        </link>
+
+        <!--Pincer block 1-->
+        <link name="${prefix}schunk_egp40_finger_left_link">
+            <visual>
+                <geometry>
+                    <mesh filename="package://prbt_cell_description/meshes/schunk_finger_left.STL" scale="0.001 0.001 0.001" />
+                </geometry>
+                <origin rpy="${pi/2} 0 0" xyz="${-body_length/2} ${pincer_width/2} ${-body_height-pincer_height/2}" />
+                <material name="white" />
+            </visual>
+            <collision>
+                <geometry>
+                    <mesh filename="package://prbt_cell_description/meshes/schunk_finger_left.STL" scale="0.001 0.001 0.001" />
+                </geometry>
+                <origin rpy="${pi/2} 0 0" xyz="${-body_length/2} ${pincer_width/2} ${-body_height-pincer_height/2}" />
+            </collision>
+            <xacro:inertial_box mass="0.1" x="${pincer_length}" y="${pincer_width}" z="${pincer_height}">
+                <origin rpy="${pi/2} 0 0" xyz="${-body_length/2} ${pincer_width/2} ${-body_height-pincer_height/2}" />
+            </xacro:inertial_box>
+        </link>
+
+
+        <!--Pincer block 2-->
+        <link name="${prefix}schunk_egp40_finger_right_link">
+            <visual>
+                <geometry>
+                    <mesh filename="package://prbt_cell_description/meshes/schunk_finger_right.STL" scale="0.001 0.001 0.001" />
+                </geometry>
+                <origin rpy="${pi/2} 0 0" xyz="${-body_length/2} ${pincer_width/2} ${-body_height-pincer_height/2}" />
+                <material name="blue" />
+            </visual>
+            <collision>
+                <geometry>
+                    <mesh filename="package://prbt_cell_description/meshes/schunk_finger_right.STL" scale="0.001 0.001 0.001" />
+                </geometry>
+                <origin rpy="${pi/2} 0 0" xyz="${-body_length/2} ${pincer_width/2} ${-body_height-pincer_height/2}" />
+            </collision>
+            <xacro:inertial_box mass="0.1" x="${pincer_length}" y="${pincer_width}" z="${pincer_height}">
+                <origin rpy="${pi/2} 0 0" xyz="${-body_length/2} ${pincer_width/2} ${-body_height-pincer_height/2}" />
+            </xacro:inertial_box>
+        </link>
+
+
+        <!-- Virtual link for visualizytion and planning-->
+        <link name="tool_tip" />
+
+
+        <!-- Joints-->
+
+        <joint name="${prefix}schunk_egp40_body_joint" type="fixed">
+            <parent link="${prefix}schunk_egp40_base_link" />
+            <child link="${prefix}schunk_egp40_body_link" />
+            <origin xyz="0.0 0.0 ${body_height/2+base_height}" rpy="0.0 0.0 0.0" />
+        </joint>
+
+        <joint name="${prefix}schunk_egp40_finger_left_joint" type="prismatic">
+            <parent link="${prefix}schunk_egp40_body_link" />
+            <child link="${prefix}schunk_egp40_finger_left_link" />
+            <origin xyz="0.0 0.0 ${body_height/2+pincer_height/2}" rpy="0.0 0.0 0.0" />
+            <!-- the motion of the pincer is along the X axis -->
+            <axis xyz="1 0 0" />
+            <!-- the motion of the pincer is limited to the half of the gripper body length -->
+            <limit lower="${-body_length/16}" upper="${body_length/16}" velocity="100" effort="100" />
+        </joint>
+
+        <joint name="schunk_egp40_finger_right_joint" type="prismatic">
+            <parent link="${prefix}schunk_egp40_body_link" />
+            <child link="${prefix}schunk_egp40_finger_right_link" />
+            <origin xyz="0.0 0.002 ${body_height/2+pincer_height/2}" rpy="0.0 0.0 0.0" />
+            <!-- the motion of the pincer is along the X axis -->
+            <axis xyz="1 0 0" />
+            <!-- the motion of the pincer is limited to the half of the gripper body length -->
+            <limit lower="${body_length/16}" upper="${-body_length/16}" velocity="100" effort="100" />
+        </joint>
+
+        <joint name="${prefix}schunk_egp40_tip_joint" type="fixed">
+            <parent link="${prefix}schunk_egp40_base_link" />
+            <child link="tool_tip" />
+            <origin xyz="0 0 ${body_height_max}" rpy="0.0 0.0 0.0" />
+        </joint>
+
+        <joint
+            name="schunk_egp40_base_joint"
+            type="fixed"
+        >
+            <parent link="${parent}" />
+            <child link="${prefix}schunk_egp40_base_link" />
+            <xacro:insert_block name="origin" />
+        </joint>
+
+
+    </xacro:macro>
+</robot>

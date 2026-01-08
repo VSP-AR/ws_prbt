@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: prbt_cell_description
+    relative_path: urdf/prbt_cell.urdf.xacro
+  srdf:
+    relative_path: config/prbt_cell.srdf
+  package_settings:
+    author_name: Vishnuprasad Prachandabhanu
+    author_email: vishnuprasad.prachandabhanu@ipa.fraunhofer.de
+    generated_timestamp: 1695753165
