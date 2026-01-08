@@ -6,7 +6,7 @@ Clone the repository inside the workspace in your local:
 ```bash
 git clone https://github.com/VSP-AR/ws_prbt.git
 ```
-## Step 2: Build an dSource repository
+## Step 2: Build and Source repository
  Once cloned, build and source the repository
 ```bash
 colcon build
