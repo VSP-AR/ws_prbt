@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 import time
 import yaml
 import threading
@@ -18,7 +18,7 @@ class PRBTJointLoop(Node):
     def __init__(self):
         super().__init__("prbt_joint_loop")
 
-     
+        # Parameters
         self.declare_parameter("poses_yaml", "config/joint_poses.yaml")
         self.declare_parameter("action_name", "/arm_controller/follow_joint_trajectory")
         self.declare_parameter("move_time", 4.0)
@@ -31,6 +31,7 @@ class PRBTJointLoop(Node):
         self.hold_time = float(self.get_parameter("hold_time").value)
         self.ping_pong = bool(self.get_parameter("ping_pong").value)
 
+        # Load YAML poses
         pkg_share = get_package_share_directory("prbt_cell_bringup")
         poses_yaml_path = f"{pkg_share}/{poses_yaml_rel}"
 
@@ -40,27 +41,27 @@ class PRBTJointLoop(Node):
         self.joint_names = data["joint_names"]
         self.poses = data["poses"]
 
-        self.client = ActionClient(self, FollowJointTrajectory, self.action_name)
-
-        self.get_logger().info(f"Waiting for action server: {self.action_name}")
-        if not self.client.wait_for_server(timeout_sec=20.0):
-            self.get_logger().error("No FollowJointTrajectory action server found. Check controller name.")
-            raise RuntimeError("Trajectory action server not available")
-
         self.get_logger().info(f"Loaded {len(self.poses)} poses from {poses_yaml_path}")
 
-        self.timer = self.create_timer(1.0, self._start_once)
-        self.started = False
+        # Action client (do NOT block in __init__)
+        self.client = ActionClient(self, FollowJointTrajectory, self.action_name)
 
-    def _start_once(self):
+        # Wait for server using timer so node does not die during launch
+        self.started = False
+        self.timer = self.create_timer(1.0, self._wait_and_start)
+
+    def _wait_and_start(self):
         if self.started:
             return
+
+        if not self.client.server_is_ready():
+            self.get_logger().info(f"Waiting for action server: {self.action_name}")
+            return
+
         self.started = True
         self.timer.cancel()
-
-       
+        self.get_logger().info("Action server available. Starting waypoint loop thread...")
         threading.Thread(target=self.run_loop, daemon=True).start()
-
 
     def _duration(self, seconds: float) -> Duration:
         d = Duration()
@@ -72,23 +73,48 @@ class PRBTJointLoop(Node):
         goal = FollowJointTrajectory.Goal()
         goal.trajectory.joint_names = list(self.joint_names)
 
+        # Execute immediately (important for sim timing)
+        goal.trajectory.header.stamp.sec = 0
+        goal.trajectory.header.stamp.nanosec = 0
+
         pt = JointTrajectoryPoint()
         pt.positions = list(positions)
         pt.time_from_start = self._duration(self.move_time)
         goal.trajectory.points = [pt]
 
-        future = self.client.send_goal_async(goal)
-        rclpy.spin_until_future_complete(self, future)
-        goal_handle = future.result()
+        done_event = threading.Event()
+        accepted = {"value": False}
+        success = {"value": False}
 
-        if goal_handle is None or not goal_handle.accepted:
-            self.get_logger().error("Goal rejected.")
+        def result_cb(_):
+            success["value"] = True
+            done_event.set()
+
+        def goal_response_cb(fut):
+            goal_handle = fut.result()
+            if goal_handle is None or not goal_handle.accepted:
+                self.get_logger().error("Goal rejected.")
+                done_event.set()
+                return
+
+            accepted["value"] = True
+            self.get_logger().info("Goal accepted, waiting for result...")
+            res_fut = goal_handle.get_result_async()
+            res_fut.add_done_callback(result_cb)
+
+        send_future = self.client.send_goal_async(goal)
+        send_future.add_done_callback(goal_response_cb)
+
+        # Wait without spinning (main thread is spinning)
+        done_event.wait(timeout=self.move_time + 30.0)
+
+        if not accepted["value"]:
+            return False
+        if not success["value"]:
+            self.get_logger().warn("Goal did not finish within timeout.")
             return False
 
-        result_future = goal_handle.get_result_async()
-        rclpy.spin_until_future_complete(self, result_future)
         self.get_logger().info("Goal finished.")
-
         return True
 
     def run_loop(self):
@@ -98,6 +124,8 @@ class PRBTJointLoop(Node):
             seq = order
             if self.ping_pong and len(order) > 2:
                 seq = order + order[-2:0:-1]
+
+            self.get_logger().info(f"Loop sequence: {[self.poses[i]['name'] for i in seq]}")
 
             for idx in seq:
                 pose = self.poses[idx]
